@@ -1,0 +1,2 @@
+defmodule MoyaPolicy do
+end
