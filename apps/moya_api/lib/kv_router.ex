@@ -1,4 +1,4 @@
-defmodule MoyaApiKvRouter do
+defmodule MoyaApi.KvRouter do
   use Plug.Router
 
   plug :match

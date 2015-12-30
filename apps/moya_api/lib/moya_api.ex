@@ -4,7 +4,7 @@ defmodule MoyaApi do
   plug :match
   plug :dispatch
 
-  forward "/kv", to: MoyaApiKvRouter
+  forward "/kv", to: MoyaApi.KvRouter
 
   match _ do
     send_resp(conn, 404, "Moya did not understand")
