@@ -9,7 +9,8 @@ defmodule MoyaDB.Application do
   def start(_type, _args) do
     children = [
       MoyaDB.Store,
-      MoyaDB.Cluster
+      MoyaDB.Cluster,
+      {Bandit, plug: MoyaDB.API, scheme: :http, port: 9000}
     ]
 
     opts = [strategy: :one_for_one, name: MoyaDB.Supervisor]
