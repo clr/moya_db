@@ -14,7 +14,8 @@ defmodule MoyaDB.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger],
+      # :mnesia starts before our app; Cluster stops it, sets :dir, then restarts.
+      extra_applications: [:logger, :mnesia],
       mod: {MoyaDB.Application, []}
     ]
   end
