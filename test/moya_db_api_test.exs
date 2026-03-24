@@ -40,9 +40,9 @@ defmodule MoyaDB.APITest do
   # POST — store a value
   # ---------------------------------------------------------------------------
 
-  describe "POST /v0.1/db/:key" do
+  describe "POST /db/v0.1/:key" do
     test "stores a JSON object and returns 200 with key and value" do
-      conn = api(:post, "/v0.1/db/user1", %{"name" => "Alice", "age" => 30})
+      conn = api(:post, "/db/v0.1/user1", %{"name" => "Alice", "age" => 30})
 
       assert conn.status == 200
       body = json(conn)
@@ -52,36 +52,36 @@ defmodule MoyaDB.APITest do
     end
 
     test "stores a JSON string value" do
-      conn = api(:post, "/v0.1/db/greeting", "hello")
+      conn = api(:post, "/db/v0.1/greeting", "hello")
 
       assert conn.status == 200
       assert json(conn)["value"] == "hello"
     end
 
     test "stores a JSON array value" do
-      conn = api(:post, "/v0.1/db/tags", ["elixir", "otp", "distributed"])
+      conn = api(:post, "/db/v0.1/tags", ["elixir", "otp", "distributed"])
 
       assert conn.status == 200
       assert json(conn)["value"] == ["elixir", "otp", "distributed"]
     end
 
     test "stores a JSON number value" do
-      conn = api(:post, "/v0.1/db/count", 42)
+      conn = api(:post, "/db/v0.1/count", 42)
 
       assert conn.status == 200
       assert json(conn)["value"] == 42
     end
 
     test "is idempotent — re-posting the same key replaces the value" do
-      api(:post, "/v0.1/db/item", %{"v" => 1})
-      conn = api(:post, "/v0.1/db/item", %{"v" => 2})
+      api(:post, "/db/v0.1/item", %{"v" => 1})
+      conn = api(:post, "/db/v0.1/item", %{"v" => 2})
 
       assert conn.status == 200
       assert json(conn)["value"]["v"] == 2
     end
 
     test "response Content-Type is application/json" do
-      conn = api(:post, "/v0.1/db/ct_test", %{"x" => 1})
+      conn = api(:post, "/db/v0.1/ct_test", %{"x" => 1})
       [ct | _] = get_resp_header(conn, "content-type")
       assert ct =~ "application/json"
     end
@@ -91,10 +91,10 @@ defmodule MoyaDB.APITest do
   # GET — read a value back
   # ---------------------------------------------------------------------------
 
-  describe "GET /v0.1/db/:key" do
+  describe "GET /db/v0.1/:key" do
     test "returns 200 and the stored value after a POST" do
-      api(:post, "/v0.1/db/profile", %{"role" => "admin"})
-      conn = api(:get, "/v0.1/db/profile")
+      api(:post, "/db/v0.1/profile", %{"role" => "admin"})
+      conn = api(:get, "/db/v0.1/profile")
 
       assert conn.status == 200
       body = json(conn)
@@ -104,30 +104,30 @@ defmodule MoyaDB.APITest do
 
     test "returns 200 for a value stored directly via the Store API" do
       MoyaDB.put("direct", %{"source" => "store"})
-      conn = api(:get, "/v0.1/db/direct")
+      conn = api(:get, "/db/v0.1/direct")
 
       assert conn.status == 200
       assert json(conn)["value"]["source"] == "store"
     end
 
     test "returns 404 for a key that does not exist" do
-      conn = api(:get, "/v0.1/db/nonexistent")
+      conn = api(:get, "/db/v0.1/nonexistent")
 
       assert conn.status == 404
       assert json(conn)["error"] == "key not found"
     end
 
     test "returns 404 after the key has been deleted" do
-      api(:post, "/v0.1/db/ephemeral", %{"x" => 1})
-      api(:delete, "/v0.1/db/ephemeral")
-      conn = api(:get, "/v0.1/db/ephemeral")
+      api(:post, "/db/v0.1/ephemeral", %{"x" => 1})
+      api(:delete, "/db/v0.1/ephemeral")
+      conn = api(:get, "/db/v0.1/ephemeral")
 
       assert conn.status == 404
     end
 
     test "response Content-Type is application/json" do
       MoyaDB.put("ct", 1)
-      conn = api(:get, "/v0.1/db/ct")
+      conn = api(:get, "/db/v0.1/ct")
       [ct | _] = get_resp_header(conn, "content-type")
       assert ct =~ "application/json"
     end
@@ -137,10 +137,10 @@ defmodule MoyaDB.APITest do
   # DELETE — remove a key-value pair
   # ---------------------------------------------------------------------------
 
-  describe "DELETE /v0.1/db/:key" do
+  describe "DELETE /db/v0.1/:key" do
     test "returns 200 with deleted:true when the key exists" do
-      api(:post, "/v0.1/db/to_delete", %{"bye" => true})
-      conn = api(:delete, "/v0.1/db/to_delete")
+      api(:post, "/db/v0.1/to_delete", %{"bye" => true})
+      conn = api(:delete, "/db/v0.1/to_delete")
 
       assert conn.status == 200
       body = json(conn)
@@ -149,14 +149,14 @@ defmodule MoyaDB.APITest do
     end
 
     test "removes the key so a subsequent GET returns 404" do
-      api(:post, "/v0.1/db/gone", %{"x" => 1})
-      api(:delete, "/v0.1/db/gone")
+      api(:post, "/db/v0.1/gone", %{"x" => 1})
+      api(:delete, "/db/v0.1/gone")
 
-      assert api(:get, "/v0.1/db/gone").status == 404
+      assert api(:get, "/db/v0.1/gone").status == 404
     end
 
     test "returns 404 when the key does not exist" do
-      conn = api(:delete, "/v0.1/db/ghost")
+      conn = api(:delete, "/db/v0.1/ghost")
 
       assert conn.status == 404
       assert json(conn)["error"] == "key not found"
@@ -164,7 +164,7 @@ defmodule MoyaDB.APITest do
 
     test "response Content-Type is application/json" do
       MoyaDB.put("del_ct", 1)
-      conn = api(:delete, "/v0.1/db/del_ct")
+      conn = api(:delete, "/db/v0.1/del_ct")
       [ct | _] = get_resp_header(conn, "content-type")
       assert ct =~ "application/json"
     end
@@ -180,21 +180,21 @@ defmodule MoyaDB.APITest do
       value = %{"status" => "ok", "count" => 7}
 
       # Store
-      post_conn = api(:post, "/v0.1/db/#{key}", value)
+      post_conn = api(:post, "/db/v0.1/#{key}", value)
       assert post_conn.status == 200
 
       # Read back
-      get_conn = api(:get, "/v0.1/db/#{key}")
+      get_conn = api(:get, "/db/v0.1/#{key}")
       assert get_conn.status == 200
       assert json(get_conn)["value"] == value
 
       # Delete
-      del_conn = api(:delete, "/v0.1/db/#{key}")
+      del_conn = api(:delete, "/db/v0.1/#{key}")
       assert del_conn.status == 200
       assert json(del_conn)["deleted"] == true
 
       # Confirm gone
-      assert api(:get, "/v0.1/db/#{key}").status == 404
+      assert api(:get, "/db/v0.1/#{key}").status == 404
     end
   end
 
@@ -210,7 +210,7 @@ defmodule MoyaDB.APITest do
     end
 
     test "returns 404 for an unrecognised versioned path" do
-      conn = api(:get, "/v0.1/something/else")
+      conn = api(:get, "/db/v0.1/something/else")
 
       assert conn.status == 404
     end

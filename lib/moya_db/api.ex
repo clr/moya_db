@@ -2,9 +2,9 @@ defmodule MoyaDB.API do
   @moduledoc """
   HTTP entry point for MoyaDB. Listens on port 9000 via Bandit.
 
-  Routes are versioned under a path prefix:
+  Routes are grouped by module first, then versioned:
 
-      /v0.1  →  MoyaDB.API.V0_1
+      /db/v0.1  →  MoyaDB.API.V0_1
 
   Adding a future version is as simple as:
 
@@ -26,7 +26,7 @@ defmodule MoyaDB.API do
 
   plug :dispatch
 
-  forward "/v0.1", to: MoyaDB.API.V0_1
+  forward "/db/v0.1", to: MoyaDB.API.V0_1
 
   match _ do
     conn

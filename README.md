@@ -27,7 +27,7 @@ cd /Users/clr/moya_db
 
 # Create a record
 ```bash
-curl -i -X POST http://localhost:9000/v0.1/db/greeting \
+curl -i -X POST http://localhost:9000/db/v0.1/greeting \\
   -H 'Content-Type: application/json' \
   -d '"hello"'
 ```
@@ -36,21 +36,21 @@ Expected: `200` with JSON `{"value":"hello","key":"greeting"}`.
 
 # Read the record
 ```bash
-curl -i http://localhost:9000/v0.1/db/greeting
+curl -i http://localhost:9000/db/v0.1/greeting
 ```
 
 Expected: `200` with JSON `{"value":"hello","key":"greeting"}`.
 
 # Delete the record
 ```bash
-curl -i -X DELETE http://localhost:9000/v0.1/db/greeting
+curl -i -X DELETE http://localhost:9000/db/v0.1/greeting
 ```
 
 Expected: `200` with JSON `{"key":"greeting","deleted":true}`.
 
 # Confirm deletion (should return 404)
 ```bash
-curl -i http://localhost:9000/v0.1/db/greeting
+curl -i http://localhost:9000/db/v0.1/greeting
 ```
 
 Expected: `404` with JSON `{"error":"key not found"}`.
