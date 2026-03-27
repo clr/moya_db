@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.moyadb</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>/Users/REPLACE_ME/moya_db/_build/prod/rel/moya_db/bin/moya_db</string>
+      <string>start</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/REPLACE_ME/moya_db</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>MOYA_DB_PORT</key>
+      <string>9000</string>
+      <key>MOYA_DB_MNESIA_ROOT</key>
+      <string>/Users/REPLACE_ME/.moya_db/mnesia</string>
+      <key>RELEASE_NODE</key>
+      <string>moya_db@127.0.0.1</string>
+      <key>RELEASE_COOKIE</key>
+      <string>change_me</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/tmp/moya_db.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/moya_db.err.log</string>
+  </dict>
+</plist>

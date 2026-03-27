@@ -2,33 +2,33 @@ defmodule MoyaDB.API.V0_1 do
   @moduledoc """
   Version 0.1 of the MoyaDB HTTP API.
 
-  All routes are mounted under `/v0.1` by `MoyaDB.API`.
+  All routes are mounted under `/db/v0.1` by `MoyaDB.API`.
 
   ## Endpoints
 
-      GET    /v0.1/db/:key   Return the value stored at `key` as JSON.
+      GET    /db/v0.1/:key   Return the value stored at `key` as JSON.
                              404 if the key does not exist.
 
-      POST   /v0.1/db/:key   Store a value at `key`. The request body is the
+      POST   /db/v0.1/:key   Store a value at `key`. The request body is the
                              value (any valid JSON). Idempotent: re-posting the
                              same key replaces its value.
                              200 on success.
 
-      DELETE /v0.1/db/:key   Delete the key-value pair.
+      DELETE /db/v0.1/:key   Delete the key-value pair.
                              404 if the key does not exist.
 
   ## Examples
 
       # Store
-      curl -X POST localhost:9000/v0.1/db/greeting \\
+      curl -X POST localhost:9000/db/v0.1/greeting \\
            -H 'Content-Type: application/json' \\
            -d '{"text": "hello"}'
 
       # Read back
-      curl localhost:9000/v0.1/db/greeting
+      curl localhost:9000/db/v0.1/greeting
 
       # Delete
-      curl -X DELETE localhost:9000/v0.1/db/greeting
+      curl -X DELETE localhost:9000/db/v0.1/greeting
   """
 
   use Plug.Router
@@ -36,7 +36,7 @@ defmodule MoyaDB.API.V0_1 do
   plug :match
   plug :dispatch
 
-  get "/db/:key" do
+  get "/:key" do
     conn = put_resp_content_type(conn, "application/json")
 
     case MoyaDB.get(key) do
@@ -54,7 +54,7 @@ defmodule MoyaDB.API.V0_1 do
     end
   end
 
-  post "/db/:key" do
+  post "/:key" do
     conn = put_resp_content_type(conn, "application/json")
 
     # Plug.Parsers wraps non-object JSON (strings, arrays, numbers) under
@@ -69,7 +69,7 @@ defmodule MoyaDB.API.V0_1 do
     send_resp(conn, 200, Jason.encode!(%{key: key, value: value}))
   end
 
-  delete "/db/:key" do
+  delete "/:key" do
     conn = put_resp_content_type(conn, "application/json")
 
     case MoyaDB.get(key) do

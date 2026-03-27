@@ -5,6 +5,7 @@ import Config
 # Empty list = single-node / no remote peers to join.
 config :moya_db,
   cluster_seeds: [],
+  http_port: 9000,
   # Override to isolate Mnesia files (recommended in test.exs)
   mnesia_root: nil
 

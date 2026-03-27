@@ -1,0 +1,19 @@
+[Unit]
+Description=MoyaDB Service
+After=network.target
+
+[Service]
+Type=simple
+User=YOUR_USER
+WorkingDirectory=/opt/moya_db
+Environment=MOYA_DB_PORT=9000
+Environment=MOYA_DB_MNESIA_ROOT=/var/lib/moya_db/mnesia
+Environment=RELEASE_NODE=moya_db@127.0.0.1
+Environment=RELEASE_COOKIE=change_me
+ExecStart=/opt/moya_db/_build/prod/rel/moya_db/bin/moya_db start
+ExecStop=/opt/moya_db/_build/prod/rel/moya_db/bin/moya_db stop
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

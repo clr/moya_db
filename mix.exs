@@ -7,7 +7,8 @@ defmodule MoyaDB.MixProject do
       version: "0.1.0",
       elixir: "~> 1.19",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      releases: releases()
     ]
   end
 
@@ -26,6 +27,15 @@ defmodule MoyaDB.MixProject do
       {:bandit, "~> 1.0"},
       {:jason, "~> 1.4"},
       {:plug, "~> 1.0"}
+    ]
+  end
+
+  defp releases do
+    [
+      moya_db: [
+        include_executables_for: [:unix],
+        applications: [moya_db: :permanent]
+      ]
     ]
   end
 end
