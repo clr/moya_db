@@ -214,15 +214,15 @@ defmodule MoyaDB.Cluster do
   # Anti-entropy
   # ---------------------------------------------------------------------------
 
-  # Push our entire Store state to the new peer so it fills any gaps, and pull
-  # its state so we fill ours.  Local values win on key conflict in both
-  # directions.  NOTE: without per-key timestamps this cannot resolve deletes
-  # that happened while a node was partitioned; LWW is the natural next step.
+  # Push our entire replication snapshot to the new peer so it fills any gaps,
+  # and pull its snapshot so we fill ours. Store snapshots include tombstones
+  # and a reset watermark so reconnect does not resurrect deleted or flushed
+  # state that is older than the latest observed version.
   defp anti_entropy(remote) do
-    local = MoyaDB.Store.all()
+    local = MoyaDB.Store.snapshot()
     GenServer.cast({MoyaDB.Store, remote}, {:merge, local})
 
-    case :rpc.call(remote, MoyaDB.Store, :all, []) do
+    case :rpc.call(remote, MoyaDB.Store, :snapshot, []) do
       {:badrpc, _} -> :ok
       remote_state -> MoyaDB.Store.merge(remote_state)
     end

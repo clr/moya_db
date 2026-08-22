@@ -1,0 +1,10 @@
+.git
+.gitignore
+_build
+deps
+test
+tmp
+*.ez
+Dockerfile*
+README.md
+.DS_Store

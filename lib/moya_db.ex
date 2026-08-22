@@ -3,8 +3,9 @@ defmodule MoyaDB do
   MoyaDB — a distributed key-value database built on Elixir/OTP.
 
   This module exposes the top-level public API. Internally each node runs a
-  supervised `MoyaDB.Store` GenServer. Replication, partitioning, and consensus
-  will be layered on top of this foundation.
+  supervised `MoyaDB.Store` process with ETS-backed storage for the hot
+  key/value path. Replication, partitioning, and consensus will be layered on
+  top of this foundation.
 
   ## Quick start
 

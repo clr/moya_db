@@ -16,6 +16,10 @@ defmodule MoyaDBTest do
     :ok
   end
 
+  defp future_version(offset) do
+    {System.system_time(:microsecond) + offset, :remote, offset}
+  end
+
   # ---------------------------------------------------------------------------
   # Store — public API
   # ---------------------------------------------------------------------------
@@ -32,12 +36,12 @@ defmodule MoyaDBTest do
 
     test "delete removes a key" do
       MoyaDB.put("to_delete", 42)
-      assert :ok = MoyaDB.delete("to_delete")
+      assert {:ok, 42} = MoyaDB.delete("to_delete")
       assert :error = MoyaDB.get("to_delete")
     end
 
-    test "delete is idempotent for missing keys" do
-      assert :ok = MoyaDB.delete("never_existed")
+    test "delete returns :error for missing keys while still recording the tombstone" do
+      assert :error = MoyaDB.delete("never_existed")
     end
 
     test "all returns a map of all entries" do
@@ -77,22 +81,61 @@ defmodule MoyaDBTest do
 
     test "replicate_delete removes a key" do
       MoyaDB.put("rdel", "v")
-      GenServer.cast(MoyaDB.Store, {:replicate_delete, "rdel"})
+      tombstone = %{deleted?: true, value: nil, version: future_version(1)}
+      GenServer.cast(MoyaDB.Store, {:replicate_delete, "rdel", tombstone})
       assert :error = MoyaDB.get("rdel")
     end
 
-    test "replicate_flush clears all entries" do
+    test "replicate_flush clears all entries older than the reset version" do
       MoyaDB.put("x", 1)
-      GenServer.cast(MoyaDB.Store, :replicate_flush)
+      GenServer.cast(MoyaDB.Store, {:replicate_flush, future_version(1)})
       assert %{} = MoyaDB.all()
     end
 
-    test "merge fills gaps; local values win on key conflict" do
+    test "merge keeps the newest value entry by version" do
+      remote_snapshot = %MoyaDB.Store.Snapshot{
+        reset_version: nil,
+        entries: %{
+          "local_key" => %{deleted?: false, value: "remote_newer", version: future_version(2)},
+          "new_key" => %{deleted?: false, value: "new_val", version: future_version(1)}
+        }
+      }
+
       MoyaDB.put("local_key", "local_val")
-      MoyaDB.Store.merge(%{"local_key" => "remote_val", "new_key" => "new_val"})
-      # Both the merge cast and the get call are processed in mailbox order.
-      assert {:ok, "local_val"} = MoyaDB.get("local_key")
+      MoyaDB.Store.merge(remote_snapshot)
+
+      assert {:ok, "remote_newer"} = MoyaDB.get("local_key")
       assert {:ok, "new_val"} = MoyaDB.get("new_key")
+    end
+
+    test "merge preserves tombstones so deleted keys are not resurrected" do
+      MoyaDB.put("ghost", "value")
+
+      remote_snapshot = %MoyaDB.Store.Snapshot{
+        reset_version: nil,
+        entries: %{
+          "ghost" => %{deleted?: true, value: nil, version: future_version(1)}
+        }
+      }
+
+      MoyaDB.Store.merge(remote_snapshot)
+      assert :error = MoyaDB.get("ghost")
+    end
+
+    test "merge applies reset watermark so flushed keys stay gone" do
+      MoyaDB.put("stale", "value")
+
+      remote_snapshot = %MoyaDB.Store.Snapshot{
+        reset_version: future_version(2),
+        entries: %{
+          "stale" => %{deleted?: false, value: "old_remote", version: {1, :remote, 1}},
+          "fresh" => %{deleted?: false, value: "new_remote", version: future_version(3)}
+        }
+      }
+
+      MoyaDB.Store.merge(remote_snapshot)
+      assert :error = MoyaDB.get("stale")
+      assert {:ok, "new_remote"} = MoyaDB.get("fresh")
     end
   end
 

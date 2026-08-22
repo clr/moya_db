@@ -28,6 +28,29 @@ defmodule MoyaDB.API do
 
   forward "/db/v0.1", to: MoyaDB.API.V0_1
 
+  @spec handle_request(map()) :: %{status: integer(), headers: [{binary(), binary()}], body: term()}
+  def handle_request(%{path: path} = request) when is_binary(path) do
+    case String.split(path, "/", trim: true) do
+      ["db", "v0.1" | rest] ->
+        MoyaDB.API.V0_1.handle_request(%{request | path: "/" <> Enum.join(rest, "/")})
+
+      _ ->
+        %{
+          status: 404,
+          headers: [{"content-type", "application/json; charset=utf-8"}],
+          body: %{error: "not found"}
+        }
+    end
+  end
+
+  def handle_request(_request) do
+    %{
+      status: 400,
+      headers: [{"content-type", "application/json; charset=utf-8"}],
+      body: %{error: "invalid request"}
+    }
+  end
+
   match _ do
     conn
     |> put_resp_content_type("application/json")

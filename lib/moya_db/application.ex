@@ -12,6 +12,7 @@ defmodule MoyaDB.Application do
     children = [
       MoyaDB.Store,
       MoyaDB.Cluster,
+      MoyaDB.Metrics,
       {Bandit, plug: MoyaDB.API, scheme: :http, port: port}
     ]
 
